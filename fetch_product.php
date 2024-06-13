@@ -1,14 +1,19 @@
 <?php
+// Step 1: Database connection
 
 require_once('classes/database.php');
-$con = new database(); 
+$con = new database();  
 
-$searchQuery = $_POST['search'];
-// $selectedCategory = $_POST['category'];
+// Step 2: Handle request parameters
+$categoryId = isset($_GET['cat_id']) && $_GET['cat_id'] != '0' ? filter_input(INPUT_GET, 'cat_id', FILTER_SANITIZE_NUMBER_INT) : null;
+$page = isset($_GET['page']) ? filter_input(INPUT_GET, 'page', FILTER_SANITIZE_NUMBER_INT) : 1;
+$records_per_page = 2;
 
-$products = $con->searchProducts($searchQuery);
+// Step 3: Fetch products
+$products = $con->viewProducts1($categoryId, $page, $records_per_page);
 
-foreach($products as $product) {
+// Step 4: Generate product HTML
+foreach ($products as $product) {
     echo "<div class='col-md-4'>\n";
     echo "  <div class='card mb-4'>\n";
     echo "    <img src='" . $product['item_image'] . "' class='card-img-top' alt='" . $product['product_name'] . "'>\n";
@@ -23,3 +28,17 @@ foreach($products as $product) {
     echo "  </div>\n";
     echo "</div>\n";
 }
+
+// Step 5: Pagination links
+$total_products = $con->getProductCount($categoryId);
+$total_pages = ceil($total_products / $records_per_page);
+for ($i = 1; $i <= $total_pages; $i++) {
+    // Pagination link HTML
+}
+
+// Step 6: AJAX request handling
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    // Return only the product and pagination HTML
+    die();
+}
+?>
